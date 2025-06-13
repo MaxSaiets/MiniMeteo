@@ -1,54 +1,64 @@
-# React + TypeScript + Vite
+# MiniMeteo - Weather Forecast Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern weather forecast application built with React, TypeScript, and Vite that provides accurate weather information based on user's location.
 
-Currently, two official plugins are available:
+## Key Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Real-time weather data display
+- 3-day weather forecast
+- Location-based weather information
+- Responsive design with Tailwind CSS
 
-## Expanding the ESLint configuration
+## Technical Implementation
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Geolocation
+The application uses browser's built-in geolocation API for determining user's location. This approach was chosen because:
+- Provides high accuracy
+- Gives users control over their location data
+- Works across different devices and browsers
+- No need for additional API keys or services
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+### Error Handling
+The application implements comprehensive error handling:
+- User permission denial scenarios
+- Geolocation service unavailability
+- Network connectivity issues
+- API response errors
+
+### Data Management
+- Efficient API calls with proper caching
+- Type-safe data handling with TypeScript
+- Optimized state management
+
+## Technologies Used
+
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- Weather API
+
+## Getting Started
+
+1. Clone the repository
+2. Install dependencies:
+```bash
+npm install
+```
+3. Start the development server:
+```bash
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Building for Production
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+```bash
+npm run build
 ```
+
+## Project Structure
+
+- `src/components/` - React components
+- `src/types/` - TypeScript type definitions
+- `src/services/` - API and utility services
+- `src/hooks/` - Custom React hooks
