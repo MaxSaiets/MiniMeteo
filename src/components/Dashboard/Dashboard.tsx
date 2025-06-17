@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState, AppDispatch } from "../../store/store";
-import { fetchWeatherForecast } from "../../store/weather/weatherSlice"; // Assuming you have a fetchWeather action
+import { fetchWeatherForecast, getUserGeoDataFromIP } from "../../store/weather/weatherSlice"; // Assuming you have a fetchWeather action
 import Spinner from "../Spinner/LoadingSpinner";
 import type { IForecastDay, IHourForecast } from "../../types";
-import { useGeolocation } from "../../hooks/useGeolocation";
 import { useNavigate } from "react-router-dom";
+import type { LatLngTuple } from "leaflet";
 
 const Dashboard = () => {
+    const userGeoPosFromLocalStorage = localStorage.getItem('userGeoPos');
+    
     const weather = useSelector((state: RootState) => state.weather);
     const dispatch = useDispatch<AppDispatch>();
     const [forecastData, setforecastData] = useState<IForecastDay[]>([]);
@@ -15,13 +17,38 @@ const Dashboard = () => {
 
     const navigate = useNavigate();
 
-    const { lat, lon, loading, error } = useGeolocation();
-    
+    const [geoPosition, setGeoPosition] = useState<LatLngTuple | null>(null);
+
+    useEffect(() => {
+        const fetchUserIpData = async () => {
+            try {
+                const data = await dispatch(getUserGeoDataFromIP()).unwrap();
+
+                setGeoPosition([data.lat, data.lon]);
+            } catch (error) {
+                console.error("Failed to fetch weather data:", error);
+            }
+        }
+        
+        if(!userGeoPosFromLocalStorage){
+            fetchUserIpData();
+        } else{
+            try {
+                const parsed = JSON.parse(userGeoPosFromLocalStorage);
+                if (Array.isArray(parsed) && parsed.length === 2 && typeof parsed[0] === "number" && typeof parsed[1] === "number") {
+                    setGeoPosition(parsed as LatLngTuple);
+                }
+            } catch {
+                //ignore
+            }
+        }
+    }, [dispatch, userGeoPosFromLocalStorage]);
+
     useEffect(() => {
         const fetchData = async () => {
-            if(weather.weatherData === null && lat && lon) {
+            if(weather.weatherData === null && weather.userGeoPos && geoPosition){
                 try {
-                    await dispatch(fetchWeatherForecast({ lat, lon, days: 14 })).unwrap();
+                    await dispatch(fetchWeatherForecast({ lat: geoPosition[0] , lon: geoPosition[1] })).unwrap();
                 } catch (error) {
                     console.error("Failed to fetch weather data:", error);
                 }
@@ -29,7 +56,7 @@ const Dashboard = () => {
         };
         
         fetchData();
-    }, [dispatch, weather.weatherData, lat, lon]);
+    }, [dispatch, weather.weatherData, weather.userGeoPos, geoPosition]);
 
     useEffect(() => {
         console.log("Weather data:", weather.weatherData);
@@ -44,40 +71,33 @@ const Dashboard = () => {
         setForecastDays(days);
     }
 
-    if (weather.loading || loading) {
+    if (weather.loading) {
         return <Spinner />;
-    } else if (error) {
-        return <div className="text-red-500 text-2xl text-center mt-4 flex flex-col items-center">
-            <p>{weather.error || error}</p>
-            <p>Надайте дозвіл до геолокації</p>
-        </div>;
-
     }
 
     return (
-        // <div className="relative bg-gray-600 flex flex-col justify-between gap-3 md:gap-6">
         <div className="relative bg-background flex flex-col justify-between ">
-            <div className="flex flex-row gap-3 justify-around items-center m-2">
+            <div className="flex max-w-[100vw] h-full flex-row md:gap-3 justify-around items-center m-2">
                 <button 
-                    className={`hover:bg-gray-300 text-gray-600 hover:text-gray-900 px-4 py-4 rounded-md text-sm font-medium transition-colors mb-2 ${forecastDays === 1 ? "bg-green-300" : "bg-gray-200"}`}
+                    className={`hover:bg-gray-300 text-gray-600 hover:text-gray-900 px-3 py-3 md:px-4 md:py-4 rounded-md text-sm font-medium transition-colors mb-2 ${forecastDays === 1 ? "bg-green-300" : "bg-gray-200"}`}
                     onClick={() => handleForecastDays(1)}    
                 >
                     Today
                 </button>
                 <button 
-                    className={`hover:bg-gray-300 text-gray-600 hover:text-gray-900 px-4 py-4 rounded-md text-sm font-medium transition-colors mb-2 ${forecastDays === 3 ? "bg-green-300" : "bg-gray-200"}`}
+                    className={`hover:bg-gray-300 text-gray-600 hover:text-gray-900 px-3 py-3 md:px-4 md:py-4 rounded-md text-sm font-medium transition-colors mb-2 ${forecastDays === 3 ? "bg-green-300" : "bg-gray-200"}`}
                     onClick={() => handleForecastDays(3)}    
                 >
                     3-Days
                 </button>
                 <button 
-                    className={`hover:bg-gray-300 text-gray-600 hover:text-gray-900 px-6 py-4 rounded-md text-sm font-medium transition-colors mb-2 ${forecastDays === 7 ? "bg-green-300" : "bg-gray-200"}`}
+                    className={`hover:bg-gray-300 text-gray-600 hover:text-gray-900 px-3 py-3 md:px-4 md:py-4 rounded-md text-sm font-medium transition-colors mb-2 ${forecastDays === 7 ? "bg-green-300" : "bg-gray-200"}`}
                     onClick={() => handleForecastDays(7)}    
                 >
                     7-Days
                 </button>
                 <button 
-                    className={`hover:bg-gray-300 text-gray-600 hover:text-gray-900 px-6 py-4 rounded-md text-sm font-medium transition-colors mb-2 ${forecastDays === 14 ? "bg-green-300" : "bg-gray-200"}`}
+                    className={`hover:bg-gray-300 text-gray-600 hover:text-gray-900 px-3 py-3 md:px-4 md:py-4 rounded-md text-sm font-medium transition-colors mb-2 ${forecastDays === 14 ? "bg-green-300" : "bg-gray-200"}`}
                     onClick={() => handleForecastDays(14)}    
                 >
                     14-Days
@@ -156,7 +176,7 @@ const Dashboard = () => {
                     ))}
                 </div>
             </div>
-        
+
         </div>
     );
 }; 

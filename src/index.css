@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import 'leaflet/dist/leaflet.css';
 
 @theme {
   --color-primary: var(--primary);
@@ -6,6 +7,11 @@
   --color-accent: var(--accent);
   --color-background: var(--background);
   --color-text: var(--text);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 :root {

@@ -5,7 +5,7 @@ import { useEffect } from 'react';
 function App() {
   useEffect(() => {
     const selectedTheme = localStorage.getItem('selectedTheme') || 'light';
-    document.body.classList.add(selectedTheme);
+    document.documentElement.classList.add(selectedTheme);
   }, []);
   
   return (
